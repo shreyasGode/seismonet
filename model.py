@@ -73,7 +73,7 @@ class AveragingBlock(nn.Module):
 		self.mp1 = nn.MaxPool1d(2)
 		self.mp2 = nn.MaxPool2d((2,2))
 
-		def forward(self, x):
+	def forward(self, x):
 		
 			x = self.relu1(self.bn1(self.conv1(x)))
 			
@@ -175,7 +175,7 @@ class SeismoNet(nn.Module):
 					nn.LeakyReLU(0.2))
 
 
-		def forward(self,x):
+	def forward(self,x):
 
 			x = self.cea(x)                          #-Convolutional Ensemble Averaging--
 			
