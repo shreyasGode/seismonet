@@ -8,15 +8,15 @@ Preprint available at [arxiv](https://arxiv.org/abs/2010.05662) :newspaper:
 
 ## Getting Started :rocket: 
 
-* [preprocess.py](preprocess.py) Preprocesses the CEBS dataset available at [physionet](https://physionet.org/content/cebsdb/1.0.0/)  
-* [trainer.py](trainer.py) Helps train the model.
-* [infer.py](infer.py) Helps take inference on any input SCG signal.
-* [utils.py](utils.py) This file consists of all the helper functions.
-* [model.py](model.py) SeismoNet architecture in torch
+* [preprocess.py](https://github.com/kushalBanda/SeismoNet-4-1-Project-/blob/main/preprocess.py) Preprocesses the CEBS dataset available at [physionet](https://physionet.org/content/cebsdb/1.0.0/)  
+* [trainer.py](https://github.com/kushalBanda/SeismoNet-4-1-Project-/blob/main/trainer.py) Helps train the model.
+* [infer.py](https://github.com/kushalBanda/SeismoNet-4-1-Project-/blob/main/infer.py) Helps take inference on any input SCG signal.
+* [utils.py](https://github.com/kushalBanda/SeismoNet-4-1-Project-/blob/main/utils.py) This file consists of all the helper functions.
+* [model.py](https://github.com/kushalBanda/SeismoNet-4-1-Project-/blob/main/model.py) SeismoNet architecture in torch
 
 ## Model Architecture
 
-<img src="figure/architecture.png"/>
+<img src="https://github.com/kushalBanda/SeismoNet-4-1-Project-/blob/main/Figure/architecture.png"/>
 
 ## Usage
 
@@ -42,7 +42,7 @@ Take inference and evaluate model:
 $ python infer.py --best_model /path/to/model --data_path /path/to/preprocessed/data --evaluate
 ```
 ## Inference
-<img src="figure/inference.gif">
+<img src="">
           
 ## Authors :mortar_board:
 
