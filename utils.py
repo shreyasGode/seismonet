@@ -7,7 +7,7 @@ from torch.utils.data import Dataset, DataLoader, TensorDataset
 from scipy.signal import find_peaks
 import torch
 
-
+eps=0
 def generateSignals(data,fs = 5000, wlen = 10, overlap = 5):
 	wlen = wlen*fs
 	overlap = (overlap*fs)/wlen
@@ -55,10 +55,11 @@ def get_shape(loader):
 		return x.shape
 	
 	
-def infer(model, inp, prominence = 0.3, distance = 625,smoothen = True, downsampling_factor = 10):
+def infer(model, inp, prominence = 0.0001, distance = 625,smoothen = True, downsampling_factor = 10):
 	model.cuda()
 	model.eval()
 	inp = inp[:,0,:].view(1, 1, inp.shape[-1]).cuda()
+
 	with torch.no_grad():
 		pred = model(inp)
 	if smoothen:
@@ -69,12 +70,15 @@ def infer(model, inp, prominence = 0.3, distance = 625,smoothen = True, downsamp
 		downsampled = out.flatten()[0::downsampling_factor]
 	else:
 		downsampled = out.flatten()
+	
+	print(f"downsamples:{downsampled}")
 	valley_loc_downsampled,_ = getValleys(downsampled, prominence = prominence,distance = max(1,distance//downsampling_factor))
 	return out,valley_loc_downsampled*downsampling_factor
 
 def getValleys(signal, prominence, distance ):
 	signal = signal*-1
 	valley_loc, _ = find_peaks(signal, prominence = prominence,distance = distance)
+	print(f"valleyloc:{valley_loc}")
 	return valley_loc,_
 
 def smooth(signal,window_len=50):
@@ -82,7 +86,7 @@ def smooth(signal,window_len=50):
 	return y
 
 def evaluate_window(actual, detected, fs = 5000, tolerance = 75):
-
+	print(f"Actual peaks: {actual}, Detected peaks: {detected}")
 	tolerance = (tolerance/1000)*fs
 	grouped_missed = []
 	FP= 0
@@ -102,7 +106,7 @@ def evaluate_window(actual, detected, fs = 5000, tolerance = 75):
 				matched_beats.append(np.NaN)
 		temp = np.asarray([correctPeak, matched[0]])
 		grouped_missed.append(temp)
-
+	print(f"Matched beats: {matched_beats}, Correct: {correct}, False Positives: {FP}")
 	grouped_missed = np.asarray(grouped_missed)
 	matched_beats = np.asarray(matched_beats)
 	matched_interbeat_intervals = np.diff(matched_beats)
@@ -110,7 +114,11 @@ def evaluate_window(actual, detected, fs = 5000, tolerance = 75):
 	matched_IBI_SD = np.diff(matched_interbeat_intervals*1000/fs)
 	matched_RMSSD = rms = np.sqrt(np.mean(matched_IBI_SD**2))
 	matched_NN50 = len(np.where(matched_IBI_SD>50)[0])
-	matched_pNN50 = matched_NN50/ len(matched_interbeat_intervals)
+	#matched_pNN50 = matched_NN50/ len(matched_interbeat_intervals)
+	if len(matched_interbeat_intervals) > 0:
+		matched_pNN50 = matched_NN50 / len(matched_interbeat_intervals)
+	else: matched_pNN50 = np.NaN
+
 	matched_mIBI = matched_interbeat_intervals.mean()*1000/fs 
 	matched_SDNN = matched_interbeat_intervals.std()*1000/fs
 	actual_interbeat_intervals = np.diff(actual)
@@ -120,6 +128,12 @@ def evaluate_window(actual, detected, fs = 5000, tolerance = 75):
 	actual_pNN50 = actual_NN50/ len(actual_interbeat_intervals)
 	actual_mIBI = actual_interbeat_intervals.mean()*1000/fs
 	actual_SDNN = actual_interbeat_intervals.std()*1000/fs
+
+	if correct + (len(detected) - correct) > 0:
+		PPV = correct / (correct + (len(detected) - correct))
+	else:
+		PPV = eps  # Or an appropriate default value
+
 
 	metrics = {
 		"Total Positives": len(actual),
@@ -136,7 +150,7 @@ def evaluate_window(actual, detected, fs = 5000, tolerance = 75):
 		'Actual RMSSD' :  actual_RMSSD, 
 		'Detected RMSSD': matched_RMSSD,
 		'Sensitivity' : correct/(correct + (len(actual) - correct)),
-		'PPV' : correct/(correct + (len(detected) - correct))
+		'PPV' : PPV,
 	}
-
+	print(f"Metrics: {metrics}")
 	return metrics
